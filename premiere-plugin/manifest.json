@@ -1,0 +1,62 @@
+{
+  "id": "171ba11c",
+  "name": "StemForge",
+  "version": "1.0.0",
+  "main": "index.html",
+  "manifestVersion": 5,
+  "host": {
+    "app": "premierepro",
+    "minVersion": "26.0"
+  },
+  "entrypoints": [
+    {
+      "type": "panel",
+      "id": "mainPanel",
+      "label": {
+        "default": "StemForge"
+      },
+      "minimumSize": { "width": 320, "height": 420 },
+      "maximumSize": { "width": 2000, "height": 2000 },
+      "preferredDockedSize": { "width": 380, "height": 640 },
+      "preferredFloatingSize": { "width": 380, "height": 640 },
+      "icons": [
+        {
+          "width": 23,
+          "height": 23,
+          "path": "icons/icon-light.png",
+          "scale": [1, 2],
+          "theme": ["darkest", "dark", "medium"]
+        },
+        {
+          "width": 23,
+          "height": 23,
+          "path": "icons/icon-dark.png",
+          "scale": [1, 2],
+          "theme": ["lightest", "light"]
+        }
+      ]
+    }
+  ],
+  "requiredPermissions": {
+    "network": {
+      "domains": ["http://localhost:17890"]
+    },
+    "localFileSystem": "fullAccess"
+  },
+  "icons": [
+    {
+      "width": 48,
+      "height": 48,
+      "path": "icons/icon-light.png",
+      "scale": [1, 2],
+      "theme": ["darkest", "dark", "medium"]
+    },
+    {
+      "width": 48,
+      "height": 48,
+      "path": "icons/icon-dark.png",
+      "scale": [1, 2],
+      "theme": ["lightest", "light"]
+    }
+  ]
+}

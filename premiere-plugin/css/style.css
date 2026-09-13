@@ -1,0 +1,500 @@
+:root {
+  color-scheme: dark;
+
+  /* Brushed-metal hardware chassis */
+  --chassis: #1b1917;
+  --chassis-light: #262421;
+  --bezel-dark: #0c0b0a;
+  --bezel-light: #3a3733;
+  --inset: #121110;
+
+  /* Warm engraved-label text */
+  --text: #e6dcc6;
+  --text-dim: #93897a;
+  --text-faint: #5f584c;
+
+  /* Muted, industrial module colors - faded, not saturated */
+  --navy: #3d5266;
+  --navy-dim: #2a3a48;
+  --olive: #6b7048;
+  --olive-dim: #4a4e32;
+  --mustard: #a9812f;
+  --mustard-dim: #7a5e24;
+  --burnt-orange: #a65a30;
+  --burnt-orange-dim: #7a4222;
+  --burgundy: #7a3b3f;
+  --burgundy-dim: #56292c;
+
+  --led-amber: #d99a3f;
+  --led-green: #7fa562;
+  --led-red: #b1503f;
+  --led-off: #3a3530;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Adobe Clean", -apple-system, sans-serif;
+  font-size: 12px;
+  background: var(--chassis);
+  color: var(--text);
+}
+
+.condensed {
+  font-family: "Bahnschrift", "Arial Narrow", "Helvetica Neue Condensed", "Segoe UI", sans-serif;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background:
+    repeating-linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.015) 0px,
+      rgba(255, 255, 255, 0.015) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(180deg, #201e1b 0%, #171513 100%);
+  position: relative;
+  border: 1px solid var(--bezel-dark);
+}
+
+/* Faux mounting screws at the chassis corners. */
+.app::before, .app::after,
+.app-header::before, .app-header::after {
+  content: "";
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #55504a, #0a0908 75%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+  z-index: 5;
+}
+.app::before { top: 6px; left: 6px; }
+.app::after { top: 6px; right: 6px; }
+
+/* Header ------------------------------------------------------------- */
+
+.app-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, var(--chassis-light), var(--chassis));
+  border-bottom: 1px solid var(--bezel-dark);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.title {
+  flex-shrink: 0;
+  font-family: "Bahnschrift", "Arial Narrow", "Helvetica Neue Condensed", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  color: var(--text);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.7), 0 -1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.brand-byline {
+  font-family: "Bahnschrift", "Arial Narrow", sans-serif;
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.server-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex-shrink: 1;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.server-status::before {
+  content: "";
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--led-off);
+  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.8);
+}
+.server-status.ok { color: var(--text-dim); }
+.server-status.ok::before { background: var(--led-green); box-shadow: 0 0 4px var(--led-green), inset 0 0 1px rgba(0,0,0,0.4); }
+.server-status.error::before { background: var(--led-red); box-shadow: 0 0 4px var(--led-red), inset 0 0 1px rgba(0,0,0,0.4); }
+
+/* Server offline help banner ---------------------------------------------- */
+
+.server-help {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  background: var(--inset);
+  border-bottom: 1px solid var(--bezel-dark);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.server-help code {
+  font-family: "Consolas", "Courier New", monospace;
+  color: var(--led-amber);
+}
+
+/* Scrollable content ---------------------------------------------------- */
+
+.app-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bezel-light) transparent;
+}
+.app-content::-webkit-scrollbar { width: 6px; }
+.app-content::-webkit-scrollbar-track { background: transparent; }
+.app-content::-webkit-scrollbar-thumb { background: var(--bezel-light); border-radius: 3px; }
+
+/* Drop zone -------------------------------------------------------------- */
+
+.drop-zone {
+  margin: 12px;
+  border: 1px dashed var(--bezel-light);
+  border-radius: 4px;
+  padding: 22px 12px;
+  text-align: center;
+  background: var(--inset);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.drop-zone.drag-over {
+  border-color: var(--led-amber);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(217, 154, 63, 0.3);
+}
+.drop-title {
+  margin: 0 0 4px;
+  font-weight: 700;
+  font-family: "Bahnschrift", "Arial Narrow", sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--text);
+}
+.drop-sub { margin: 0 0 8px; color: var(--text-faint); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+.drop-zone-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+
+/* Modules (panels) --------------------------------------------------------- */
+
+.panel {
+  margin: 0 12px 12px;
+  padding: 12px 14px;
+  background:
+    repeating-linear-gradient(100deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px),
+    linear-gradient(180deg, var(--chassis-light), var(--chassis));
+  border-radius: 4px;
+  border: 1px solid var(--bezel-dark);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+.panel.hidden, .hidden { display: none !important; }
+
+/* Each module gets its own muted, industrial accent color, like colored
+   channel-strip faceplates on a hardware console. */
+#analyze-section { border-top: 2px solid var(--mustard-dim); }
+#transform-section { border-top: 2px solid var(--navy-dim); }
+#separate-section { border-top: 2px solid var(--burnt-orange-dim); }
+
+.section-title {
+  font-family: "Bahnschrift", "Arial Narrow", sans-serif;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* File row ------------------------------------------------------------------ */
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--text);
+}
+.btn-icon {
+  flex-shrink: 0;
+  background: var(--inset);
+  border: 1px solid var(--bezel-light);
+  color: var(--text-dim);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.btn-icon:hover { color: var(--led-red); }
+
+/* Detect stats / LED meter --------------------------------------------------- */
+
+.analysis-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.stat { display: flex; flex-direction: column; min-width: 52px; }
+.stat-label {
+  color: var(--text-faint);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.stat-value {
+  font-family: "Bahnschrift", "Arial Narrow", sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  word-break: break-word;
+}
+.stat-bpm .stat-value { color: var(--led-amber); }
+.stat-key .stat-value { color: #c9b98a; }
+.analysis-row .btn { margin-left: auto; }
+
+.confidence-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bezel-dark);
+}
+.led-meter {
+  display: flex;
+  gap: 3px;
+}
+.led-seg {
+  width: 8px;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--inset);
+  border: 1px solid var(--bezel-dark);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.led-seg.lit:nth-child(-n+6) { background: var(--led-green); box-shadow: 0 0 4px var(--led-green); }
+.led-seg.lit:nth-child(n+7):nth-child(-n+9) { background: var(--led-amber); box-shadow: 0 0 4px var(--led-amber); }
+.led-seg.lit:nth-child(10) { background: var(--led-red); box-shadow: 0 0 4px var(--led-red); }
+
+/* Form controls -------------------------------------------------------------- */
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin-bottom: 12px;
+  gap: 5px;
+}
+.form-row label {
+  color: var(--text-faint);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.form-row input,
+.form-row select {
+  width: 100%;
+  background: var(--inset);
+  border: 1px solid var(--bezel-dark);
+  color: var(--led-amber);
+  font-family: "Consolas", "Courier New", monospace;
+  border-radius: 3px;
+  padding: 7px 8px;
+  font-size: 12px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.form-row select { color: var(--text); font-family: inherit; }
+.form-row input:focus,
+.form-row select:focus {
+  outline: none;
+  border-color: var(--led-amber);
+}
+.form-row select option {
+  background: var(--chassis-light);
+  color: var(--text);
+}
+
+.select-wrap { position: relative; }
+.select-wrap select { padding-right: 26px; }
+.select-wrap::after {
+  content: "▾";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+  pointer-events: none;
+  font-size: 10px;
+}
+
+/* Buttons - styled like recessed hardware pushbuttons ------------------------ */
+
+.btn {
+  background: linear-gradient(180deg, var(--chassis-light), var(--bezel-dark));
+  border: 1px solid var(--bezel-dark);
+  color: var(--text);
+  border-radius: 3px;
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: box-shadow 0.1s, transform 0.05s;
+}
+.btn:hover { border-color: var(--bezel-light); }
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+.btn:disabled { opacity: 0.45; cursor: default; box-shadow: none; transform: none; }
+
+/* The spin itself is driven from JS (cycling this element's text content
+   on an interval), not a CSS animation - a ::before pseudo-element and,
+   apparently, @keyframes animations have not reliably rendered on
+   controls in this UXP host, so no part of the "it's spinning" effect
+   depends on CSS working here at all, only plain text updates. */
+.btn-spinner {
+  display: inline-block;
+  color: var(--led-amber);
+  font-size: 12px;
+}
+
+.btn-primary {
+  width: 100%;
+  margin-top: 4px;
+  background: linear-gradient(180deg, var(--burnt-orange), var(--burnt-orange-dim));
+  border: 1px solid var(--bezel-dark);
+  color: #f2e6d0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: "Bahnschrift", "Arial Narrow", sans-serif;
+}
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-primary:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.45);
+}
+
+/* Results / stem list ---------------------------------------------------------- */
+
+.result-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bezel-dark);
+}
+.result-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.stem-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+.stem-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-top: 1px solid var(--bezel-dark);
+}
+.stem-item:first-child { border-top: none; }
+
+.stem-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.stem-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--text-dim);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stem-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--led-off);
+  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.7);
+}
+.stem-drums .stem-dot { background: var(--burnt-orange); box-shadow: 0 0 4px var(--burnt-orange); }
+.stem-bass .stem-dot { background: var(--burgundy); box-shadow: 0 0 4px var(--burgundy); }
+.stem-vocals .stem-dot { background: var(--navy); box-shadow: 0 0 4px var(--navy); }
+.stem-other .stem-dot { background: var(--olive); box-shadow: 0 0 4px var(--olive); }
+.stem-guitar .stem-dot { background: var(--mustard); box-shadow: 0 0 4px var(--mustard); }
+.stem-piano .stem-dot { background: var(--navy); box-shadow: 0 0 4px var(--navy); }
+.stem-instrumental .stem-dot { background: var(--olive); box-shadow: 0 0 4px var(--olive); }
+
+/* Status bar --------------------------------------------------------------------- */
+
+.status-bar {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: 10px;
+  color: var(--text-faint);
+  border-top: 1px solid var(--bezel-dark);
+  min-height: 14px;
+  background: linear-gradient(180deg, var(--chassis), var(--chassis-light));
+}
+.status-bar.error { color: var(--led-red); }

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">
+        <span class="title">STEMFORGE</span>
+        <span class="brand-byline">by FDE</span>
+      </div>
+      <span id="server-status" class="server-status unknown">checking server…</span>
+    </header>
+
+    <div id="server-help" class="server-help hidden">
+      StemForge needs its local processing service running. Open the
+      <strong>companion-server</strong> folder from the plugin download and run
+      <code>start_server.sh</code> (or double-click <code>Start StemForge
+      Server.command</code> on Mac), then leave it running in the background.
+    </div>
+
+    <div class="app-content">
+      <section id="drop-zone" class="drop-zone">
+        <div class="drop-zone-inner">
+          <p class="drop-title">Drag &amp; drop an audio file</p>
+          <p class="drop-sub">or</p>
+          <div class="drop-zone-actions">
+            <button id="browse-btn" class="btn">Browse…</button>
+            <button id="load-selected-btn" class="btn">Load Selected Clip</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="file-info" class="panel hidden">
+        <div class="file-row">
+          <span id="file-name" class="file-name" title="">—</span>
+          <button id="clear-file-btn" class="btn-icon" title="Remove file">✕</button>
+        </div>
+      </section>
+
+      <section id="analyze-section" class="panel hidden">
+        <div class="section-title">Detect</div>
+        <div class="analysis-row">
+          <div class="stat stat-bpm">
+            <span class="stat-label">BPM</span>
+            <span id="detected-bpm" class="stat-value">—</span>
+          </div>
+          <div class="stat stat-key">
+            <span class="stat-label">Key</span>
+            <span id="detected-key" class="stat-value">—</span>
+          </div>
+          <button id="analyze-btn" class="btn">Analyze</button>
+        </div>
+        <div class="confidence-row">
+          <span class="stat-label">Key confidence</span>
+          <div class="led-meter" id="confidence-meter" aria-hidden="true">
+            <span class="led-seg"></span><span class="led-seg"></span><span class="led-seg"></span>
+            <span class="led-seg"></span><span class="led-seg"></span><span class="led-seg"></span>
+            <span class="led-seg"></span><span class="led-seg"></span><span class="led-seg"></span>
+            <span class="led-seg"></span>
+          </div>
+        </div>
+      </section>
+
+      <section id="transform-section" class="panel hidden">
+        <div class="section-title">Change BPM / Key</div>
+        <div class="form-row">
+          <label for="target-bpm">Target BPM</label>
+          <input id="target-bpm" type="number" min="1" step="0.1" placeholder="e.g. 128" />
+        </div>
+        <div class="form-row">
+          <label for="target-key">Target Key</label>
+          <div class="select-wrap">
+            <select id="target-key">
+              <option value="">— choose a key —</option>
+              <option value="C major">C Major</option>
+              <option value="C# major">C# / Db Major</option>
+              <option value="D major">D Major</option>
+              <option value="D# major">D# / Eb Major</option>
+              <option value="E major">E Major</option>
+              <option value="F major">F Major</option>
+              <option value="F# major">F# / Gb Major</option>
+              <option value="G major">G Major</option>
+              <option value="G# major">G# / Ab Major</option>
+              <option value="A major">A Major</option>
+              <option value="A# major">A# / Bb Major</option>
+              <option value="B major">B Major</option>
+              <option value="C minor">C Minor</option>
+              <option value="C# minor">C# / Db Minor</option>
+              <option value="D minor">D Minor</option>
+              <option value="D# minor">D# / Eb Minor</option>
+              <option value="E minor">E Minor</option>
+              <option value="F minor">F Minor</option>
+              <option value="F# minor">F# / Gb Minor</option>
+              <option value="G minor">G Minor</option>
+              <option value="G# minor">G# / Ab Minor</option>
+              <option value="A minor">A Minor</option>
+              <option value="A# minor">A# / Bb Minor</option>
+              <option value="B minor">B Minor</option>
+            </select>
+          </div>
+        </div>
+        <button id="transform-btn" class="btn btn-primary">Render Transformed Audio</button>
+        <div id="transform-result" class="result-row hidden">
+          <span id="transform-result-label">—</span>
+          <button id="import-transform-btn" class="btn">Import to Project</button>
+        </div>
+      </section>
+
+      <section id="separate-section" class="panel hidden">
+        <div class="section-title">Separate Stems</div>
+        <div class="form-row">
+          <label for="stem-model">Model</label>
+          <div class="select-wrap">
+            <select id="stem-model">
+              <option value="htdemucs">4-stem (drums / bass / vocals / other)</option>
+              <option value="htdemucs_6s">6-stem (+ guitar / piano)</option>
+              <option value="vocals_instrumental">Vocals / Instrumental only</option>
+            </select>
+          </div>
+        </div>
+        <button id="separate-btn" class="btn btn-primary">Separate Stems</button>
+        <ul id="stem-list" class="stem-list"></ul>
+        <button id="import-all-stems-btn" class="btn hidden">Import All Stems</button>
+      </section>
+    </div>
+
+    <footer id="status-bar" class="status-bar"></footer>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

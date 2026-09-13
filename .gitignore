@@ -1,0 +1,11 @@
+companion-server/.venv/
+companion-server/work/
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+.env
+*.log
+node_modules/
+dist/
+build/

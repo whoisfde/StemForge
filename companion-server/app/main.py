@@ -39,31 +39,32 @@ def require_api_key(x_api_key: Optional[str] = Header(None)):
         raise HTTPException(status_code=401, detail="Missing or invalid API key")
 
 
+# ASGI startup doesn't finish - and nothing, not even /health, gets
+# served - until lifespan() yields. Demucs model loading and librosa/numba
+# JIT compilation are each a one-time, multi-minute-worst-case cost, which
+# used to be paid right here so it wouldn't land on whichever request hit
+# /separate or /transform first. On an always-on local server that's a
+# one-time startup delay; on Modal's scale-to-zero, it reran on every cold
+# start and made /health (and so the plugin's "connected" indicator) hang
+# for 30-40+ seconds. Warm-up now runs in the background after yielding,
+# so /health responds the moment the container is up - the very first real
+# /separate or /transform request after a cold start still pays the cost
+# directly if it lands before background warm-up finishes. Module-level
+# (not a lifespan()-local closure) so /warmup-retry can re-trigger it.
+async def warm_up_in_background():
+    loop = asyncio.get_event_loop()
+    try:
+        log.info("Warming up transform (librosa/numba)...")
+        await loop.run_in_executor(None, transform_module.warm_up)
+        log.info("Warming up separation (default Demucs model)...")
+        await loop.run_in_executor(None, separation_module.warm_up)
+        log.info("Warm-up complete.")
+    except Exception:
+        log.exception("Background warm-up failed")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # ASGI startup doesn't finish - and nothing, not even /health, gets
-    # served - until this function yields. Demucs model loading and
-    # librosa/numba JIT compilation are each a one-time, multi-minute-
-    # worst-case cost, which used to be paid right here so it wouldn't
-    # land on whichever request hit /separate or /transform first. On an
-    # always-on local server that's a one-time startup delay; on Modal's
-    # scale-to-zero, it reran on every cold start and made /health (and so
-    # the plugin's "connected" indicator) hang for 30-40+ seconds. Warm-up
-    # now runs in the background after yielding, so /health responds the
-    # moment the container is up - the very first real /separate or
-    # /transform request after a cold start still pays the cost directly
-    # if it lands before background warm-up finishes.
-    async def warm_up_in_background():
-        loop = asyncio.get_event_loop()
-        try:
-            log.info("Warming up transform (librosa/numba)...")
-            await loop.run_in_executor(None, transform_module.warm_up)
-            log.info("Warming up separation (default Demucs model)...")
-            await loop.run_in_executor(None, separation_module.warm_up)
-            log.info("Warm-up complete.")
-        except Exception:
-            log.exception("Background warm-up failed")
-
     asyncio.create_task(warm_up_in_background())
     yield
 
@@ -107,6 +108,20 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/ready")
+def ready():
+    return separation_module.get_state()
+
+
+@app.post("/warmup-retry")
+async def warmup_retry():
+    state = separation_module.get_state()
+    if state["stage"] == "error":
+        separation_module.set_stage("setting_up")
+        asyncio.create_task(warm_up_in_background())
+    return separation_module.get_state()
 
 
 @app.post("/analyze", dependencies=[Depends(require_api_key)])

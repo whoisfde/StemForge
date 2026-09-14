@@ -31,9 +31,28 @@ STEM_LABELS = {
 _separators: dict[str, demucs.api.Separator] = {}
 _separators_lock = threading.Lock()
 
+# Tracks the default model's warm-up progress so the desktop UI can show a
+# "downloading the model" state on first launch instead of just looking
+# stuck. "setting_up" until warm_up() finishes, then "ready" or "error".
+_state_lock = threading.Lock()
+_stage = "setting_up"
+_error: str | None = None
+
 
 class SeparationError(RuntimeError):
     pass
+
+
+def get_state() -> dict:
+    with _state_lock:
+        return {"stage": _stage, "error": _error}
+
+
+def set_stage(stage: str, error: str | None = None) -> None:
+    global _stage, _error
+    with _state_lock:
+        _stage = stage
+        _error = error
 
 
 def _get_separator(model: str) -> demucs.api.Separator:
@@ -48,7 +67,14 @@ def _get_separator(model: str) -> demucs.api.Separator:
 def warm_up(model: str = DEFAULT_MODEL) -> None:
     """Loads the default model at server startup instead of on whichever
     request calls /separate first."""
-    _get_separator(model)
+    set_stage("setting_up")
+    try:
+        _get_separator(model)
+    except Exception as exc:  # noqa: BLE001
+        set_stage("error", str(exc))
+        raise
+    else:
+        set_stage("ready")
 
 
 def separate_file(src_path: Path, out_dir: Path, model: str = DEFAULT_MODEL) -> dict:

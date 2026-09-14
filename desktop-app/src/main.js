@@ -1,9 +1,18 @@
+// No frontend bundler is used in this project (frontendDist serves src/ as-is),
+// so the Tauri/plugin JS APIs come from the `withGlobalTauri` globals injected
+// at runtime rather than from `@tauri-apps/*` module imports.
+const { check } = window.__TAURI__.updater;
+const { relaunch } = window.__TAURI__.process;
+const { listen } = window.__TAURI__.event;
+
 const READY_URL = "http://127.0.0.1:17890/ready";
 const WARMUP_RETRY_URL = "http://127.0.0.1:17890/warmup-retry";
 const POLL_INTERVAL_MS = 1000;
 
 let statusViewEl;
+let updateStatusViewEl;
 let setupStartMs = null;
+let updateCheckInFlight = false;
 
 function render(html) {
   statusViewEl.innerHTML = html;
@@ -77,8 +86,88 @@ async function checkReady() {
   }
 }
 
+function renderUpdate(html) {
+  updateStatusViewEl.innerHTML = html;
+}
+
+function renderUpdateChecking() {
+  renderUpdate(`
+    <div class="status-row">
+      <span class="spinner"></span>
+      <span>Checking for updates...</span>
+    </div>
+  `);
+}
+
+function renderUpdateUpToDate() {
+  renderUpdate(`
+    <div class="status-row">
+      <span class="status-dot status-dot--ok"></span>
+      <span>You're up to date</span>
+    </div>
+  `);
+}
+
+function renderUpdateDownloading(version) {
+  renderUpdate(`
+    <div class="status-row">
+      <span class="spinner"></span>
+      <span>Downloading update ${version}...</span>
+    </div>
+  `);
+}
+
+function renderUpdateRestarting() {
+  renderUpdate(`
+    <div class="status-row">
+      <span class="spinner"></span>
+      <span>Restarting to finish updating...</span>
+    </div>
+  `);
+}
+
+function renderUpdateError(message) {
+  renderUpdate(`
+    <div class="status-row">
+      <span class="status-dot status-dot--down"></span>
+      <span>Update check failed: ${message}</span>
+    </div>
+  `);
+}
+
+async function checkForUpdates() {
+  if (updateCheckInFlight) {
+    return;
+  }
+  updateCheckInFlight = true;
+  try {
+    renderUpdateChecking();
+    const update = await check();
+    if (!update) {
+      renderUpdateUpToDate();
+      return;
+    }
+    renderUpdateDownloading(update.version);
+    await update.downloadAndInstall((event) => {
+      if (event.event === "Started" || event.event === "Progress") {
+        renderUpdateDownloading(update.version);
+      }
+    });
+    renderUpdateRestarting();
+    await relaunch();
+  } catch (e) {
+    renderUpdateError(e?.message ?? String(e));
+  } finally {
+    updateCheckInFlight = false;
+  }
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   statusViewEl = document.querySelector("#status-view");
+  updateStatusViewEl = document.querySelector("#update-status-view");
   checkReady();
   setInterval(checkReady, POLL_INTERVAL_MS);
+  listen("stemforge://check-for-updates", () => {
+    checkForUpdates();
+  });
 });

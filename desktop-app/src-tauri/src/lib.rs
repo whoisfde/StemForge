@@ -4,7 +4,7 @@ use std::sync::Mutex;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager, RunEvent,
+    Emitter, Manager, RunEvent,
 };
 use tauri_plugin_autostart::{ManagerExt, MacosLauncher};
 
@@ -59,6 +59,8 @@ pub fn run() {
             MacosLauncher::LaunchAgent,
             None,
         ))
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .manage(CompanionProcess(Mutex::new(None)))
         .setup(|app| {
             let handle = app.handle().clone();
@@ -77,18 +79,27 @@ pub fn run() {
                 }
             }
 
+            let check_updates_item =
+                MenuItem::with_id(app, "check-updates", "Check for Updates", true, None::<&str>)?;
             let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&quit_item])?;
+            let menu = Menu::with_items(app, &[&check_updates_item, &quit_item])?;
 
             let icon = app.default_window_icon().cloned();
 
             let mut tray_builder = TrayIconBuilder::new()
                 .menu(&menu)
+                .tooltip(format!("StemForge v{}", app.package_info().version))
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| {
                     if event.id().as_ref() == "quit" {
                         kill_companion(&app.state::<CompanionProcess>());
                         app.exit(0);
+                    } else if event.id().as_ref() == "check-updates" {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                        let _ = app.emit("stemforge://check-for-updates", ());
                     }
                 })
                 .on_tray_icon_event(|tray, event| {

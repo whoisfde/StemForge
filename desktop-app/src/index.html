@@ -9,15 +9,27 @@
   </head>
 
   <body>
-    <main class="container">
-      <h1>StemForge</h1>
-      <div id="status-view">
-        <div class="status-row">
-          <span class="spinner"></span>
-          <span>Checking...</span>
-        </div>
+    <div class="app">
+      <header class="app-header">
+        <img class="brand-logo" src="/assets/logo-lockup.png" alt="StemForge" />
+      </header>
+
+      <div class="app-content">
+        <section class="panel">
+          <div class="section-title">Companion Server</div>
+          <div id="status-view">
+            <div class="status-row">
+              <span class="spinner"></span>
+              <span>Checking...</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">Updates</div>
+          <div id="update-status-view"></div>
+        </section>
       </div>
-      <div id="update-status-view"></div>
-    </main>
+    </div>
   </body>
 </html>

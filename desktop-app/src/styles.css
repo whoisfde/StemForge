@@ -1,105 +1,195 @@
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
+  color-scheme: dark;
 
-  color: #0f0f0f;
-  background-color: #f6f6f6;
+  /* Brushed-metal hardware chassis — matches the Premiere plugin palette */
+  --chassis: #1b1917;
+  --chassis-light: #262421;
+  --bezel-dark: #0c0b0a;
+  --bezel-light: #3a3733;
+  --inset: #121110;
 
+  /* Warm engraved-label text */
+  --text: #e6dcc6;
+  --text-dim: #93897a;
+  --text-faint: #5f584c;
+
+  --burnt-orange: #a65a30;
+  --burnt-orange-dim: #7a4222;
+
+  --led-amber: #d99a3f;
+  --led-green: #7fa562;
+  --led-red: #b1503f;
+  --led-off: #3a3530;
+
+  font-family: "Segoe UI", "Adobe Clean", -apple-system, sans-serif;
+  font-size: 12px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--chassis);
+  color: var(--text);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
 }
 
-.container {
-  margin: 0;
-  padding-top: 10vh;
+.app {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+  min-height: 100vh;
+  background:
+    repeating-linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.015) 0px,
+      rgba(255, 255, 255, 0.015) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(180deg, #201e1b 0%, #171513 100%);
+  position: relative;
+  border: 1px solid var(--bezel-dark);
 }
 
-h1 {
-  text-align: center;
+.app::before, .app::after {
+  content: "";
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #55504a, #0a0908 75%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+  z-index: 5;
 }
+.app::before { top: 6px; left: 6px; }
+.app::after { top: 6px; right: 6px; }
+
+/* Header ------------------------------------------------------------- */
+
+.app-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 16px;
+  background: linear-gradient(180deg, var(--chassis-light), var(--chassis));
+  border-bottom: 1px solid var(--bezel-dark);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.brand-logo {
+  height: 64px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+
+/* Content / panels ----------------------------------------------------- */
+
+.app-content {
+  flex: 1;
+  padding: 4px 0 16px;
+}
+
+.panel {
+  margin: 16px 20px 0;
+  padding: 14px 16px;
+  background:
+    repeating-linear-gradient(100deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px),
+    linear-gradient(180deg, var(--chassis-light), var(--chassis));
+  border-radius: 4px;
+  border: 1px solid var(--bezel-dark);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.section-title {
+  font-family: "Bahnschrift", "Arial Narrow", sans-serif;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* Status rows / LEDs ----------------------------------------------------- */
 
 .status-row {
   display: flex;
   align-items: center;
-  gap: 0.5em;
-  margin-top: 1em;
-  font-size: 1.1em;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
 }
 
 .status-dot {
   display: inline-block;
-  width: 0.7em;
-  height: 0.7em;
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background-color: #999;
+  background: var(--led-off);
+  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.8);
 }
 
 .status-dot--ok {
-  background-color: #2ecc71;
+  background: var(--led-green);
+  box-shadow: 0 0 4px var(--led-green), inset 0 0 1px rgba(0, 0, 0, 0.4);
 }
 
 .status-dot--down {
-  background-color: #e74c3c;
+  background: var(--led-red);
+  box-shadow: 0 0 4px var(--led-red), inset 0 0 1px rgba(0, 0, 0, 0.4);
 }
 
 .spinner {
   display: inline-block;
-  width: 0.9em;
-  height: 0.9em;
-  border: 2px solid #999;
-  border-top-color: transparent;
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--bezel-light);
+  border-top-color: var(--led-amber);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 .elapsed {
-  margin-top: 0.5em;
-  font-size: 0.9em;
-  color: #888;
+  margin-top: 6px;
+  margin-left: 18px;
+  font-size: 10px;
+  color: var(--text-faint);
 }
 
 #retry-button {
-  margin-top: 1em;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.5em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
+  margin-top: 12px;
+  background: linear-gradient(180deg, var(--burnt-orange), var(--burnt-orange-dim));
+  border: 1px solid var(--bezel-dark);
+  color: #f2e6d0;
+  border-radius: 3px;
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: "Bahnschrift", "Arial Narrow", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   cursor: pointer;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: box-shadow 0.1s, transform 0.05s;
 }
 
-#retry-button:hover {
-  border-color: #396cd8;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
-
-  #retry-button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
+#retry-button:hover { filter: brightness(1.08); }
+#retry-button:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
 }

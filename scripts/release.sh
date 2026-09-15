@@ -39,6 +39,16 @@ if [ -z "$APP_PATH" ]; then
 fi
 echo "Found app bundle: $APP_PATH"
 
+# Tauri's macOS bundler copies bundle.resources (the companion-server dir)
+# into Contents/Resources AFTER its own ad-hoc signing pass, which leaves
+# the app's CodeResources seal missing/stale. Gatekeeper then treats it as
+# a broken signature ("is damaged and can't be opened") instead of merely
+# unnotarized, with NO "Open Anyway" override at all. Re-sign after the
+# resources are in place so the seal matches what's actually shipped.
+echo "== Re-signing app bundle (resources were added after Tauri's own signing pass) =="
+codesign --force --deep -s - "$APP_PATH"
+codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+
 # Tauri's own updater artifacts (from createUpdaterArtifacts: true) -- these
 # are what the in-app "Check for Updates" flow actually fetches. Separate
 # from the human-facing zip below.

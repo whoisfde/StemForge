@@ -93,10 +93,7 @@ const StemForgeAPI = (() => {
     return res.arrayBuffer();
   }
 
-  async function postFile(path, fileBytes, fileName, extraFields) {
-    const boundary = randomBoundary();
-    const body = buildMultipartBody(boundary, fileBytes, fileName, extraFields);
-
+  async function postFileOnce(path, boundary, body) {
     let res;
     try {
       res = await fetch(`${BASE_URL}${path}`, {
@@ -111,7 +108,38 @@ const StemForgeAPI = (() => {
     if (!res.ok) {
       throw new Error(await extractErrorMessage(res));
     }
-    return res.json();
+    // Read as text first rather than trusting res.json() blindly - UXP's
+    // fetch has occasionally handed back a response that fails to parse
+    // as JSON here even though the server logged a clean 200 with valid
+    // JSON, most likely from a reused keep-alive connection getting
+    // corrupted/truncated client-side. Parsing text ourselves means a
+    // genuine failure now shows the actual raw body (so it's diagnosable)
+    // instead of UXP's generic "There was an error parsing the body".
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch (parseErr) {
+      const preview = text ? text.slice(0, 200) : "(empty response)";
+      const err = new Error(`Server response wasn't valid JSON: ${preview}`);
+      err.retryable = true;
+      throw err;
+    }
+  }
+
+  async function postFile(path, fileBytes, fileName, extraFields) {
+    const boundary = randomBoundary();
+    const body = buildMultipartBody(boundary, fileBytes, fileName, extraFields);
+    try {
+      return await postFileOnce(path, boundary, body);
+    } catch (err) {
+      if (!err.retryable) throw err;
+      // Single automatic retry: this server only ever has one local
+      // client, so a second attempt is cheap and safe, and it's the
+      // most direct mitigation for a one-off connection-reuse hiccup
+      // rather than making the user manually click Analyze again.
+      console.log("StemForge: retrying after unparseable response", BASE_URL + path);
+      return await postFileOnce(path, boundary, body);
+    }
   }
 
   // FastAPI returns either {"detail": "some string"} for our own HTTPExceptions,

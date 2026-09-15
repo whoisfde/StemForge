@@ -84,6 +84,22 @@ app.add_middleware(
 # http://localhost:17890/files/... before the user decides to import it.
 app.mount("/files", StaticFiles(directory=str(WORK_DIR)), name="files")
 
+
+# UXP's fetch implementation has shown itself unreliable about HTTP/1.1
+# keep-alive connection reuse against this server - multiple concurrent
+# ESTABLISHED sockets have been observed between Premiere and this process
+# for what should be one request at a time, and analysis of a real (long)
+# audio file has produced "error parsing the body" client-side even though
+# the server logged a normal 200 with valid JSON. Forcing every response
+# to close its connection makes the client open a fresh socket per
+# request, which rules out a stale/reused connection corrupting or
+# truncating the next response.
+@app.middleware("http")
+async def close_connection_per_request(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Connection"] = "close"
+    return response
+
 # Belt-and-suspenders: each route below already turns its own expected
 # failure modes into an HTTPException with a real `detail` message. This
 # catches anything that still gets through uncaught (a bug, a new failure

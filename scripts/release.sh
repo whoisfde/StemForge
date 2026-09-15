@@ -30,7 +30,7 @@ export TAURI_SIGNING_PRIVATE_KEY_PASSWORD
 echo "== Building StemForge ${VERSION} =="
 npm run tauri build
 
-BUNDLE_DIR="src-tauri/target/release/bundle/macos"
+BUNDLE_DIR="$PWD/src-tauri/target/release/bundle/macos"
 APP_PATH=$(find "$BUNDLE_DIR" -maxdepth 1 -name "StemForge.app" | head -1)
 if [ -z "$APP_PATH" ]; then
   echo "ERROR: no StemForge.app bundle found in $BUNDLE_DIR"

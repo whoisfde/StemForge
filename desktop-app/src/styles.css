@@ -193,3 +193,60 @@ body {
   transform: translateY(1px);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
 }
+
+/* License activation ---------------------------------------------------- */
+
+.license-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#license-input {
+  background: var(--inset);
+  border: 1px solid var(--bezel-dark);
+  border-radius: 3px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  letter-spacing: 0.04em;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+#license-input:focus {
+  outline: none;
+  border-color: var(--led-amber);
+}
+
+#activate-button {
+  background: linear-gradient(180deg, var(--burnt-orange), var(--burnt-orange-dim));
+  border: 1px solid var(--bezel-dark);
+  color: #f2e6d0;
+  border-radius: 3px;
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: "Bahnschrift", "Arial Narrow", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: box-shadow 0.1s, transform 0.05s;
+}
+
+#activate-button:hover { filter: brightness(1.08); }
+#activate-button:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#activate-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.license-error {
+  font-size: 11px;
+  color: var(--led-red);
+}

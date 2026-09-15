@@ -4,6 +4,7 @@
 const { check } = window.__TAURI__.updater;
 const { relaunch } = window.__TAURI__.process;
 const { listen } = window.__TAURI__.event;
+const { invoke } = window.__TAURI__.core;
 
 const READY_URL = "http://127.0.0.1:17890/ready";
 const WARMUP_RETRY_URL = "http://127.0.0.1:17890/warmup-retry";
@@ -11,11 +12,104 @@ const POLL_INTERVAL_MS = 1000;
 
 let statusViewEl;
 let updateStatusViewEl;
+let licenseViewEl;
 let setupStartMs = null;
 let updateCheckInFlight = false;
+let readyPollHandle = null;
+
+// --- License -----------------------------------------------------------
+
+function renderLicenseForm(message, isError) {
+  licenseViewEl.innerHTML = `
+    ${message ? `<p class="${isError ? "license-error" : "status-row"}" style="margin:0 0 8px;">${message}</p>` : ""}
+    <div class="license-form">
+      <input id="license-input" type="text" placeholder="SF-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false" />
+      <button id="activate-button">Activate</button>
+    </div>
+  `;
+  const input = document.querySelector("#license-input");
+  const button = document.querySelector("#activate-button");
+  button.addEventListener("click", () => onActivate(input, button));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") onActivate(input, button);
+  });
+}
+
+function renderLicenseActive() {
+  licenseViewEl.innerHTML = `
+    <div class="status-row">
+      <span class="status-dot status-dot--ok"></span>
+      <span>License: active</span>
+    </div>
+  `;
+}
+
+async function onActivate(input, button) {
+  const key = input.value.trim();
+  if (!key) return;
+  button.disabled = true;
+  button.textContent = "Activating...";
+  try {
+    const result = await invoke("activate_license", { key });
+    if (result.valid) {
+      renderLicenseActive();
+      startReadyPolling();
+    } else {
+      renderLicenseForm(
+        result.reason === "revoked" ? "That key has been revoked." : "That license key isn't valid.",
+        true
+      );
+    }
+  } catch (e) {
+    renderLicenseForm(typeof e === "string" ? e : e?.message ?? "Activation failed.", true);
+  } finally {
+    const activeButton = document.querySelector("#activate-button");
+    if (activeButton) {
+      activeButton.disabled = false;
+      activeButton.textContent = "Activate";
+    }
+  }
+}
+
+async function initLicenseView() {
+  const hasLicense = await invoke("has_stored_license");
+  if (hasLicense) {
+    // Optimistic — the Rust side already spawned the companion server on
+    // this assumption too. stemforge://license-revoked corrects this if
+    // the background check disagrees.
+    renderLicenseActive();
+    startReadyPolling();
+  } else {
+    renderLicenseForm();
+    renderWaitingForLicense();
+  }
+}
 
 function render(html) {
   statusViewEl.innerHTML = html;
+}
+
+function renderWaitingForLicense() {
+  setupStartMs = null;
+  render(`
+    <div class="status-row">
+      <span class="status-dot"></span>
+      <span>Waiting for license activation</span>
+    </div>
+  `);
+}
+
+function startReadyPolling() {
+  if (readyPollHandle) return;
+  checkReady();
+  readyPollHandle = setInterval(checkReady, POLL_INTERVAL_MS);
+}
+
+function stopReadyPolling() {
+  if (readyPollHandle) {
+    clearInterval(readyPollHandle);
+    readyPollHandle = null;
+  }
 }
 
 function renderSettingUp(message) {
@@ -165,8 +259,20 @@ async function checkForUpdates() {
 window.addEventListener("DOMContentLoaded", () => {
   statusViewEl = document.querySelector("#status-view");
   updateStatusViewEl = document.querySelector("#update-status-view");
-  checkReady();
-  setInterval(checkReady, POLL_INTERVAL_MS);
+  licenseViewEl = document.querySelector("#license-view");
+  initLicenseView();
+  listen("stemforge://license-revoked", (event) => {
+    stopReadyPolling();
+    renderWaitingForLicense();
+    renderLicenseForm(
+      event.payload === "revoked" ? "This license has been revoked." : "License check failed — activate again.",
+      true
+    );
+  });
+  listen("stemforge://license-ok", () => {
+    renderLicenseActive();
+    startReadyPolling();
+  });
   listen("stemforge://check-for-updates", () => {
     checkForUpdates();
   });

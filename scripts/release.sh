@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Build StemForge v1.0.2 (with the new logo/branding) and publish a single
+# Build StemForge v1.0.3 (license activation gate + a fixed code signature
+# that was showing "damaged" to every downloader) and publish a single
 # one-click download release on GitHub.
 #
 # Run this yourself in Terminal, from anywhere:
@@ -11,7 +12,7 @@
 set -euo pipefail
 
 REPO_DIR="$HOME/Developer/StemForge"
-VERSION="1.0.2"
+VERSION="1.0.3"
 TAG="v${VERSION}"
 
 cd "$REPO_DIR/desktop-app"
@@ -156,7 +157,7 @@ gh release create "$TAG" \
   "$UPDATER_SIG" \
   "$LATEST_JSON" \
   --title "StemForge ${VERSION}" \
-  --notes "Rebrand: correct app name/icon (StemForge, not desktop-app). One-click combined download (desktop app + Premiere plugin + instructions). See INSTALL.md for setup."
+  --notes "License activation gate: the app now requires a valid license key to run, checked on launch and periodically while running, so a revoked purchase actually stops an installed copy. Also fixes a broken code signature that made every download show 'is damaged and can't be opened' instead of the normal Gatekeeper prompt. See INSTALL.md for setup."
 
 echo
 echo "Done. One-click download asset:"
